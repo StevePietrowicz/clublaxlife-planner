@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import React, { useState, useRef } from "react";
 
 const NAVY = "#1B2A6B";
 const ORANGE = "#F5821F";
