@@ -155,9 +155,11 @@ export default function App() {
       setLoadingMsg("Looking up tournament info...");
       const prompt = "You are a lacrosse tournament travel assistant. Tournament: " + query + "\n\nRespond with ONLY a valid JSON object, nothing else, no markdown:\n{\n  \"tournamentName\": \"string\",\n  \"location\": \"City, State\",\n  \"venueAddress\": \"full address\",\n  \"directions\": \"2-3 sentences with highways and landmarks\",\n  \"proTip\": \"insider tip for lax families\",\n  \"hotels\": [\n    { \"name\": \"string\", \"detail\": \"X miles from venue · $$ · chain name\", \"stars\": 3, \"pool\": true, \"tag\": \"why great for families\" }\n  ],\n  \"restaurants\": [\n    { \"name\": \"string\", \"detail\": \"Cuisine type · price · address\", \"largeGroup\": true, \"tag\": \"why families love it\" }\n  ],\n  \"todos\": [\n    { \"name\": \"string\", \"detail\": \"cost · brief description\", \"ageRange\": \"All ages\", \"distance\": \"2 miles from venue\", \"indoorOutdoor\": \"Outdoor\", \"bookingRequired\": false, \"tag\": \"why fun\" }\n  ],\n  \"groceryStores\": [\n    { \"name\": \"string\", \"detail\": \"distance · address\", \"tag\": \"why useful\" }\n  ],\n  \"liquorStores\": [\n    { \"name\": \"string\", \"detail\": \"distance · address\", \"tag\": \"note\" }\n  ]\n}\n\nInclude 4 hotels, 5 restaurants, 4 todos, 2-3 grocery stores, 2 liquor stores. Use real specific places for the tournament location.";
 
+      const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
+      if (!apiKey) throw new Error("API key not configured. Set VITE_ANTHROPIC_API_KEY in your .env file.");
       const res = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "anthropic-version": "2023-06-01", "x-api-key": "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", "anthropic-dangerous-direct-browser-access": "true" },
+        headers: { "Content-Type": "application/json", "anthropic-version": "2023-06-01", "x-api-key": apiKey, "anthropic-dangerous-direct-browser-access": "true" },
         body: JSON.stringify({ model: "claude-haiku-4-5-20251001", max_tokens: 2000, messages: [{ role: "user", content: prompt }] })
       });
       if (!res.ok) throw new Error("HTTP " + res.status);
