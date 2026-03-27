@@ -112,6 +112,27 @@ function StoreCard({ item }) {
   );
 }
 
+function PizzaCard({ item, city }) {
+  const search = encodeURIComponent(item.name + (city ? " " + city : ""));
+  return (
+    <div style={{background:CARD,border:"1px solid "+BORDER,borderRadius:12,padding:14,borderLeft:"3px solid #f97316"}}>
+      <div style={{fontWeight:700,fontSize:13,color:WHITE,marginBottom:3}}>{item.name}</div>
+      <div style={{fontSize:11,color:"rgba(255,255,255,0.55)",lineHeight:1.5,marginBottom:6}}>{item.detail}</div>
+      {item.tag && <Badge text={item.tag} />}
+      <div style={{display:"flex",gap:8,marginTop:10}}>
+        <a href={"https://www.doordash.com/search/store/" + search} target="_blank" rel="noopener noreferrer"
+          style={{flex:1,textAlign:"center",background:"#ff3008",color:WHITE,borderRadius:8,padding:"7px 0",fontSize:11,fontWeight:700,textDecoration:"none"}}>
+          🛵 DoorDash
+        </a>
+        <a href={"https://www.ubereats.com/search?q=" + search} target="_blank" rel="noopener noreferrer"
+          style={{flex:1,textAlign:"center",background:"#06c167",color:WHITE,borderRadius:8,padding:"7px 0",fontSize:11,fontWeight:700,textDecoration:"none"}}>
+          🟢 Uber Eats
+        </a>
+      </div>
+    </div>
+  );
+}
+
 function WeatherCard({ weather }) {
   if (!weather || !weather.days || !weather.days.length) return null;
   return (
@@ -153,7 +174,7 @@ export default function App() {
     setError(null);
     try {
       setLoadingMsg("Looking up tournament info...");
-      const prompt = "You are a lacrosse tournament travel assistant. Tournament: " + query + "\n\nRespond with ONLY a valid JSON object, nothing else, no markdown:\n{\n  \"tournamentName\": \"string\",\n  \"location\": \"City, State\",\n  \"venueAddress\": \"full address\",\n  \"directions\": \"2-3 sentences with highways and landmarks\",\n  \"proTip\": \"insider tip for lax families\",\n  \"hotels\": [\n    { \"name\": \"string\", \"detail\": \"X miles from venue · $$ · chain name\", \"stars\": 3, \"pool\": true, \"tag\": \"why great for families\" }\n  ],\n  \"restaurants\": [\n    { \"name\": \"string\", \"detail\": \"Cuisine type · price · address\", \"largeGroup\": true, \"tag\": \"why families love it\" }\n  ],\n  \"todos\": [\n    { \"name\": \"string\", \"detail\": \"cost · brief description\", \"ageRange\": \"All ages\", \"distance\": \"2 miles from venue\", \"indoorOutdoor\": \"Outdoor\", \"bookingRequired\": false, \"tag\": \"why fun\" }\n  ],\n  \"groceryStores\": [\n    { \"name\": \"string\", \"detail\": \"distance · address\", \"tag\": \"why useful\" }\n  ],\n  \"liquorStores\": [\n    { \"name\": \"string\", \"detail\": \"distance · address\", \"tag\": \"note\" }\n  ]\n}\n\nInclude 4 hotels, 5 restaurants, 4 todos, 2-3 grocery stores, 2 liquor stores. Use real specific places for the tournament location.";
+      const prompt = "You are a lacrosse tournament travel assistant. Tournament: " + query + "\n\nRespond with ONLY a valid JSON object, nothing else, no markdown:\n{\n  \"tournamentName\": \"string\",\n  \"location\": \"City, State\",\n  \"venueAddress\": \"full address\",\n  \"directions\": \"2-3 sentences with highways and landmarks\",\n  \"proTip\": \"insider tip for lax families\",\n  \"hotels\": [\n    { \"name\": \"string\", \"detail\": \"X miles from venue · $$ · chain name\", \"stars\": 3, \"pool\": true, \"tag\": \"why great for families\" }\n  ],\n  \"restaurants\": [\n    { \"name\": \"string\", \"detail\": \"Cuisine type · price · address\", \"largeGroup\": true, \"tag\": \"why families love it\" }\n  ],\n  \"todos\": [\n    { \"name\": \"string\", \"detail\": \"cost · brief description\", \"ageRange\": \"All ages\", \"distance\": \"2 miles from venue\", \"indoorOutdoor\": \"Outdoor\", \"bookingRequired\": false, \"tag\": \"why fun\" }\n  ],\n  \"groceryStores\": [\n    { \"name\": \"string\", \"detail\": \"distance · address\", \"tag\": \"why useful\" }\n  ],\n  \"liquorStores\": [\n    { \"name\": \"string\", \"detail\": \"distance · address\", \"tag\": \"note\" }\n  ],\n  \"pizzaPlaces\": [\n    { \"name\": \"string\", \"detail\": \"style · delivery apps · address\", \"tag\": \"why great for the team\" }\n  ]\n}\n\nInclude 4 hotels, 5 restaurants, 4 todos, 2-3 grocery stores, 2 liquor stores, 3 pizza places. Use real specific places for the tournament location.";
 
       const res = await fetch("/api/chat", {
         method: "POST",
@@ -180,6 +201,7 @@ export default function App() {
         todos: Array.isArray(parsed.todos) ? parsed.todos : [],
         groceryStores: Array.isArray(parsed.groceryStores) ? parsed.groceryStores : [],
         liquorStores: Array.isArray(parsed.liquorStores) ? parsed.liquorStores : [],
+        pizzaPlaces: Array.isArray(parsed.pizzaPlaces) ? parsed.pizzaPlaces : [],
         mapsUrl: "https://www.google.com/maps/search/" + encodeURIComponent(parsed.venueAddress || parsed.location || query)
       });
     } catch (e) {
@@ -303,6 +325,16 @@ export default function App() {
                     style={{display:"inline-flex",alignItems:"center",gap:6,marginTop:12,background:ORANGE,color:WHITE,borderRadius:8,padding:"9px 16px",fontSize:13,fontWeight:700,textDecoration:"none"}}>
                     📍 Open in Google Maps
                   </a>
+                </div>
+              </div>
+            )}
+
+            {/* Best Pizza Delivery */}
+            {result.pizzaPlaces.length > 0 && (
+              <div style={{marginBottom:28}}>
+                <SectionHeader icon="🍕" title="Best Pizza Delivery" />
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:10}}>
+                  {result.pizzaPlaces.map(function(item,i){ return <PizzaCard key={i} item={item} city={result.location}/>; })}
                 </div>
               </div>
             )}
