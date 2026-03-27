@@ -67,6 +67,10 @@ function HotelCard({ item }) {
         {item.pool && <Badge text="🏊 Pool" />}
         {item.tag && <Badge text={item.tag} />}
       </div>
+      <div style={{display:"flex",gap:8,marginTop:10}}>
+        {item.website && <a href={item.website} target="_blank" rel="noopener noreferrer" style={{flex:1,textAlign:"center",background:"#2563eb",color:WHITE,borderRadius:8,padding:"7px 0",fontSize:11,fontWeight:700,textDecoration:"none"}}>🌐 Website</a>}
+        {item.phone && <a href={"tel:" + item.phone} style={{flex:1,textAlign:"center",background:"#0f766e",color:WHITE,borderRadius:8,padding:"7px 0",fontSize:11,fontWeight:700,textDecoration:"none"}}>📞 Phone</a>}
+      </div>
     </div>
   );
 }
@@ -79,6 +83,10 @@ function RestaurantCard({ item }) {
       <div style={{display:"flex",flexWrap:"wrap",gap:2}}>
         {item.largeGroup && <Badge text="👥 Large Groups OK" />}
         {item.tag && <Badge text={item.tag} />}
+      </div>
+      <div style={{display:"flex",gap:8,marginTop:10}}>
+        {item.website && <a href={item.website} target="_blank" rel="noopener noreferrer" style={{flex:1,textAlign:"center",background:"#2563eb",color:WHITE,borderRadius:8,padding:"7px 0",fontSize:11,fontWeight:700,textDecoration:"none"}}>🌐 Website</a>}
+        {item.phone && <a href={"tel:" + item.phone} style={{flex:1,textAlign:"center",background:"#0f766e",color:WHITE,borderRadius:8,padding:"7px 0",fontSize:11,fontWeight:700,textDecoration:"none"}}>📞 Phone</a>}
       </div>
     </div>
   );
@@ -98,6 +106,10 @@ function TodoCard({ item }) {
         {item.bookingRequired && <Badge text="📅 Book Ahead" color="#7c3aed" />}
         {item.tag && <Badge text={item.tag} />}
       </div>
+      <div style={{display:"flex",gap:8,marginTop:10}}>
+        {item.website && <a href={item.website} target="_blank" rel="noopener noreferrer" style={{flex:1,textAlign:"center",background:"#2563eb",color:WHITE,borderRadius:8,padding:"7px 0",fontSize:11,fontWeight:700,textDecoration:"none"}}>🌐 Website</a>}
+        {item.phone && <a href={"tel:" + item.phone} style={{flex:1,textAlign:"center",background:"#0f766e",color:WHITE,borderRadius:8,padding:"7px 0",fontSize:11,fontWeight:700,textDecoration:"none"}}>📞 Phone</a>}
+      </div>
     </div>
   );
 }
@@ -108,6 +120,10 @@ function StoreCard({ item }) {
       <div style={{fontWeight:700,fontSize:13,color:WHITE,marginBottom:3}}>{item.name}</div>
       <div style={{fontSize:11,color:"rgba(255,255,255,0.55)",lineHeight:1.5,marginBottom:6}}>{item.detail}</div>
       {item.tag && <Badge text={item.tag} />}
+      <div style={{display:"flex",gap:8,marginTop:10}}>
+        {item.website && <a href={item.website} target="_blank" rel="noopener noreferrer" style={{flex:1,textAlign:"center",background:"#2563eb",color:WHITE,borderRadius:8,padding:"7px 0",fontSize:11,fontWeight:700,textDecoration:"none"}}>🌐 Website</a>}
+        {item.phone && <a href={"tel:" + item.phone} style={{flex:1,textAlign:"center",background:"#0f766e",color:WHITE,borderRadius:8,padding:"7px 0",fontSize:11,fontWeight:700,textDecoration:"none"}}>📞 Phone</a>}
+      </div>
     </div>
   );
 }
@@ -174,7 +190,7 @@ export default function App() {
     setError(null);
     try {
       setLoadingMsg("Looking up tournament info...");
-      const prompt = "You are a lacrosse tournament travel assistant. Tournament: " + query + "\n\nRespond with ONLY a valid JSON object, nothing else, no markdown:\n{\n  \"tournamentName\": \"string\",\n  \"location\": \"City, State\",\n  \"venueAddress\": \"full address\",\n  \"directions\": \"2-3 sentences with highways and landmarks\",\n  \"proTip\": \"insider tip for lax families\",\n  \"hotels\": [\n    { \"name\": \"string\", \"detail\": \"X miles from venue · $$ · chain name\", \"stars\": 3, \"pool\": true, \"tag\": \"why great for families\" }\n  ],\n  \"restaurants\": [\n    { \"name\": \"string\", \"detail\": \"Cuisine type · price · address\", \"largeGroup\": true, \"tag\": \"why families love it\" }\n  ],\n  \"todos\": [\n    { \"name\": \"string\", \"detail\": \"cost · brief description\", \"ageRange\": \"All ages\", \"distance\": \"2 miles from venue\", \"indoorOutdoor\": \"Outdoor\", \"bookingRequired\": false, \"tag\": \"why fun\" }\n  ],\n  \"groceryStores\": [\n    { \"name\": \"string\", \"detail\": \"distance · address\", \"tag\": \"why useful\" }\n  ],\n  \"liquorStores\": [\n    { \"name\": \"string\", \"detail\": \"distance · address\", \"tag\": \"note\" }\n  ],\n  \"pizzaPlaces\": [\n    { \"name\": \"string\", \"detail\": \"style · delivery apps · address\", \"tag\": \"why great for the team\" }\n  ]\n}\n\nInclude 4 hotels, 5 restaurants, 4 todos, 2-3 grocery stores, 2 liquor stores, 3 pizza places. Use real specific places for the tournament location.";
+      const prompt = "You are a lacrosse tournament travel assistant. Tournament: " + query + "\n\nRespond with ONLY a valid JSON object, nothing else, no markdown:\n{\n  \"tournamentName\": \"string\",\n  \"location\": \"City, State\",\n  \"venueAddress\": \"full address\",\n  \"directions\": \"2-3 sentences with highways and landmarks\",\n  \"proTip\": \"insider tip for lax families\",\n  \"hotels\": [\n    { \"name\": \"string\", \"detail\": \"X miles from venue · $$ · chain name\", \"stars\": 3, \"pool\": true, \"tag\": \"why great for families\", \"website\": \"https://...\", \"phone\": \"555-000-0000\" }\n  ],\n  \"restaurants\": [\n    { \"name\": \"string\", \"detail\": \"Cuisine type · price · address\", \"largeGroup\": true, \"tag\": \"why families love it\", \"website\": \"https://...\", \"phone\": \"555-000-0000\" }\n  ],\n  \"todos\": [\n    { \"name\": \"string\", \"detail\": \"cost · brief description\", \"ageRange\": \"All ages\", \"distance\": \"2 miles from venue\", \"indoorOutdoor\": \"Outdoor\", \"bookingRequired\": false, \"tag\": \"why fun\", \"website\": \"https://...\", \"phone\": \"555-000-0000\" }\n  ],\n  \"groceryStores\": [\n    { \"name\": \"string\", \"detail\": \"distance · address\", \"tag\": \"why useful\", \"website\": \"https://...\", \"phone\": \"555-000-0000\" }\n  ],\n  \"liquorStores\": [\n    { \"name\": \"string\", \"detail\": \"distance · address\", \"tag\": \"note\", \"website\": \"https://...\", \"phone\": \"555-000-0000\" }\n  ],\n  \"pizzaPlaces\": [\n    { \"name\": \"string\", \"detail\": \"style · delivery apps · address\", \"tag\": \"why great for the team\" }\n  ]\n}\n\nInclude 4 hotels, 5 restaurants, 4 todos, 2-3 grocery stores, 2 liquor stores, 3 pizza places. Use real specific places for the tournament location.";
 
       const res = await fetch("/api/chat", {
         method: "POST",
@@ -339,18 +355,6 @@ export default function App() {
               </div>
             )}
 
-            <WeatherCard weather={result.weather}/>
-
-            {/* Hotels */}
-            {result.hotels.length > 0 && (
-              <div style={{marginBottom:28}}>
-                <SectionHeader icon="🏨" title="Where to Stay" />
-                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:10}}>
-                  {result.hotels.map(function(item,i){ return <HotelCard key={i} item={item}/>; })}
-                </div>
-              </div>
-            )}
-
             {/* Restaurants */}
             {result.restaurants.length > 0 && (
               <div style={{marginBottom:28}}>
@@ -371,6 +375,16 @@ export default function App() {
               </div>
             )}
 
+            {/* Hotels */}
+            {result.hotels.length > 0 && (
+              <div style={{marginBottom:28}}>
+                <SectionHeader icon="🏨" title="Where to Stay" />
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:10}}>
+                  {result.hotels.map(function(item,i){ return <HotelCard key={i} item={item}/>; })}
+                </div>
+              </div>
+            )}
+
             {/* Grocery Stores */}
             {result.groceryStores.length > 0 && (
               <div style={{marginBottom:28}}>
@@ -383,13 +397,15 @@ export default function App() {
 
             {/* Liquor Stores */}
             {result.liquorStores.length > 0 && (
-              <div style={{marginBottom:16}}>
+              <div style={{marginBottom:28}}>
                 <SectionHeader icon="🍷" title="Liquor Stores" />
                 <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:10}}>
                   {result.liquorStores.map(function(item,i){ return <StoreCard key={i} item={item}/>; })}
                 </div>
               </div>
             )}
+
+            <WeatherCard weather={result.weather}/>
 
           </div>
         )}
