@@ -200,7 +200,23 @@ export default function App() {
       if (!res.ok) throw new Error("HTTP " + res.status);
       const data = await res.json();
       const txt = data.content[0].text;
-      const parsed = JSON.parse(txt.substring(txt.indexOf("{"), txt.lastIndexOf("}") + 1));
+      const start = txt.indexOf("{");
+      const end = txt.lastIndexOf("}");
+      if (start === -1 || end === -1) throw new Error("No JSON found in response");
+      let jsonStr = txt.substring(start, end + 1);
+      // If JSON is truncated, close any open arrays/objects so it can still parse
+      let parsed;
+      try {
+        parsed = JSON.parse(jsonStr);
+      } catch (e) {
+        const opens = (jsonStr.match(/\[/g) || []).length - (jsonStr.match(/\]/g) || []).length;
+        const braces = (jsonStr.match(/\{/g) || []).length - (jsonStr.match(/\}/g) || []).length;
+        // Strip trailing incomplete entry (cut off mid-value) then close structures
+        jsonStr = jsonStr.replace(/,\s*\{[^}]*$/, "");
+        for (let i = 0; i < opens; i++) jsonStr += "]";
+        for (let i = 0; i < braces; i++) jsonStr += "}";
+        parsed = JSON.parse(jsonStr);
+      }
 
       setLoadingMsg("Fetching live weather...");
       let weatherData = null;
