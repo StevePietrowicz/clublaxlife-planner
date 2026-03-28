@@ -177,6 +177,7 @@ function WeatherCard({ weather }) {
 
 export default function App() {
   const [query, setQuery] = useState("");
+  const [locationInput, setLocationInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingMsg, setLoadingMsg] = useState("");
   const [result, setResult] = useState(null);
@@ -184,13 +185,13 @@ export default function App() {
   const inputRef = useRef();
 
   async function handleSearch() {
-    if (!query.trim()) return;
+    if (!query.trim() || !locationInput.trim()) return;
     setLoading(true);
     setResult(null);
     setError(null);
     try {
       setLoadingMsg("Looking up tournament info...");
-      const prompt = "You are a lacrosse tournament travel assistant. Tournament: " + query + "\n\nRespond with ONLY a valid JSON object, nothing else, no markdown:\n{\n  \"tournamentName\": \"string\",\n  \"location\": \"City, State\",\n  \"venueAddress\": \"full address\",\n  \"directions\": \"2-3 sentences with highways and landmarks\",\n  \"proTip\": \"insider tip for lax families\",\n  \"hotels\": [\n    { \"name\": \"string\", \"detail\": \"X miles from venue · $$ · chain name\", \"stars\": 3, \"pool\": true, \"tag\": \"why great for families\", \"website\": \"https://...\", \"phone\": \"555-000-0000\" }\n  ],\n  \"restaurants\": [\n    { \"name\": \"string\", \"detail\": \"Cuisine type · price · address\", \"largeGroup\": true, \"tag\": \"why families love it\", \"website\": \"https://...\", \"phone\": \"555-000-0000\" }\n  ],\n  \"todos\": [\n    { \"name\": \"string\", \"detail\": \"cost · brief description\", \"ageRange\": \"All ages\", \"distance\": \"2 miles from venue\", \"indoorOutdoor\": \"Outdoor\", \"bookingRequired\": false, \"tag\": \"why fun\", \"website\": \"https://...\", \"phone\": \"555-000-0000\" }\n  ],\n  \"groceryStores\": [\n    { \"name\": \"string\", \"detail\": \"distance · address\", \"tag\": \"why useful\", \"website\": \"https://...\", \"phone\": \"555-000-0000\" }\n  ],\n  \"liquorStores\": [\n    { \"name\": \"string\", \"detail\": \"distance · address\", \"tag\": \"note\", \"website\": \"https://...\", \"phone\": \"555-000-0000\" }\n  ],\n  \"pizzaPlaces\": [\n    { \"name\": \"string\", \"detail\": \"style · delivery apps · address\", \"tag\": \"why great for the team\" }\n  ]\n}\n\nInclude 4 hotels, 5 restaurants, 4 todos, 2-3 grocery stores, 2 liquor stores, 3 pizza places. Use real specific places for the tournament location.";
+      const prompt = "You are a lacrosse tournament travel assistant. Tournament: " + query + " in " + locationInput + "\n\nRespond with ONLY a valid JSON object, nothing else, no markdown:\n{\n  \"tournamentName\": \"string\",\n  \"location\": \"" + locationInput + "\",\n  \"venueAddress\": \"full address\",\n  \"directions\": \"2-3 sentences with highways and landmarks\",\n  \"proTip\": \"insider tip for lax families\",\n  \"hotels\": [\n    { \"name\": \"string\", \"detail\": \"X miles from venue · $$ · chain name\", \"stars\": 3, \"pool\": true, \"tag\": \"why great for families\", \"website\": \"https://...\", \"phone\": \"555-000-0000\" }\n  ],\n  \"restaurants\": [\n    { \"name\": \"string\", \"detail\": \"Cuisine type · price · address\", \"largeGroup\": true, \"tag\": \"why families love it\", \"website\": \"https://...\", \"phone\": \"555-000-0000\" }\n  ],\n  \"todos\": [\n    { \"name\": \"string\", \"detail\": \"cost · brief description\", \"ageRange\": \"All ages\", \"distance\": \"2 miles from venue\", \"indoorOutdoor\": \"Outdoor\", \"bookingRequired\": false, \"tag\": \"why fun\", \"website\": \"https://...\", \"phone\": \"555-000-0000\" }\n  ],\n  \"groceryStores\": [\n    { \"name\": \"string\", \"detail\": \"distance · address\", \"tag\": \"why useful\", \"website\": \"https://...\", \"phone\": \"555-000-0000\" }\n  ],\n  \"liquorStores\": [\n    { \"name\": \"string\", \"detail\": \"distance · address\", \"tag\": \"note\", \"website\": \"https://...\", \"phone\": \"555-000-0000\" }\n  ],\n  \"pizzaPlaces\": [\n    { \"name\": \"string\", \"detail\": \"style · delivery apps · address\", \"tag\": \"why great for the team\" }\n  ]\n}\n\nInclude 4 hotels, 5 restaurants, 4 todos, 2-3 grocery stores, 2 liquor stores, 3 pizza places. All results must be in or near " + locationInput + ". For hotels: EXCLUDE budget chains (Motel 6, Red Roof Inn, Super 8, Days Inn, Econo Lodge). PRIORITIZE Marriott, Hilton, Hyatt, and IHG brand properties. For pizza: EXCLUDE large national chains (Dominos, Little Caesars, Papa Johns). PRIORITIZE local pizzerias and regional chains.";
 
       const res = await fetch("/api/chat", {
         method: "POST",
@@ -220,7 +221,7 @@ export default function App() {
 
       setLoadingMsg("Fetching live weather...");
       let weatherData = null;
-      try { weatherData = await fetchRealWeather(parsed.location || query); } catch(e) {}
+      try { weatherData = await fetchRealWeather(locationInput); } catch(e) { console.error("Weather fetch failed:", e); }
 
       setResult({
         tournamentName: parsed.tournamentName || query,
@@ -280,19 +281,30 @@ export default function App() {
         {/* Search */}
         {!result && (
           <div style={{background:"rgba(27,42,107,0.6)",border:"1px solid rgba(245,130,31,0.35)",borderRadius:16,padding:20}}>
-            <div style={{fontSize:11,letterSpacing:2,textTransform:"uppercase",color:"rgba(255,255,255,0.45)",marginBottom:10}}>Tournament Name</div>
-            <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
-              <input ref={inputRef} value={query}
-                onChange={e => setQuery(e.target.value)}
-                onKeyDown={e => { if(e.key==="Enter") handleSearch(); }}
-                placeholder="e.g. Beast of the East, Naptown Shootout..."
-                style={{flex:1,minWidth:160,background:"rgba(255,255,255,0.08)",border:"1px solid rgba(245,130,31,0.3)",borderRadius:10,padding:"13px 15px",fontSize:15,color:WHITE,fontFamily:"'DM Sans',sans-serif"}}
-              />
-              <button onClick={handleSearch} disabled={loading||!query.trim()}
-                style={{background:loading||!query.trim()?"rgba(245,130,31,0.3)":ORANGE,color:WHITE,border:"none",borderRadius:10,padding:"13px 22px",fontSize:14,fontWeight:700,cursor:loading||!query.trim()?"not-allowed":"pointer",fontFamily:"'DM Sans',sans-serif",display:"flex",alignItems:"center",gap:7,whiteSpace:"nowrap"}}>
-                {loading ? <><span style={{width:14,height:14,border:"2px solid rgba(255,255,255,0.3)",borderTopColor:WHITE,borderRadius:"50%",display:"inline-block",animation:"spin 0.7s linear infinite"}}></span>Finding...</> : "🔍 Plan Trip"}
-              </button>
+            <div style={{display:"flex",gap:16,flexWrap:"wrap",marginBottom:10}}>
+              <div style={{flex:2,minWidth:160}}>
+                <div style={{fontSize:11,letterSpacing:2,textTransform:"uppercase",color:"rgba(255,255,255,0.45)",marginBottom:6}}>Tournament Name</div>
+                <input ref={inputRef} value={query}
+                  onChange={e => setQuery(e.target.value)}
+                  onKeyDown={e => { if(e.key==="Enter") handleSearch(); }}
+                  placeholder="e.g. Beast of the East, Naptown Shootout..."
+                  style={{width:"100%",background:"rgba(255,255,255,0.08)",border:"1px solid rgba(245,130,31,0.3)",borderRadius:10,padding:"13px 15px",fontSize:15,color:WHITE,fontFamily:"'DM Sans',sans-serif"}}
+                />
+              </div>
+              <div style={{flex:1,minWidth:130}}>
+                <div style={{fontSize:11,letterSpacing:2,textTransform:"uppercase",color:"rgba(255,255,255,0.45)",marginBottom:6}}>City, State</div>
+                <input value={locationInput}
+                  onChange={e => setLocationInput(e.target.value)}
+                  onKeyDown={e => { if(e.key==="Enter") handleSearch(); }}
+                  placeholder="e.g. Baltimore, MD"
+                  style={{width:"100%",background:"rgba(255,255,255,0.08)",border:"1px solid rgba(245,130,31,0.3)",borderRadius:10,padding:"13px 15px",fontSize:15,color:WHITE,fontFamily:"'DM Sans',sans-serif"}}
+                />
+              </div>
             </div>
+            <button onClick={handleSearch} disabled={loading||!query.trim()||!locationInput.trim()}
+              style={{background:loading||!query.trim()||!locationInput.trim()?"rgba(245,130,31,0.3)":ORANGE,color:WHITE,border:"none",borderRadius:10,padding:"13px 22px",fontSize:14,fontWeight:700,cursor:loading||!query.trim()||!locationInput.trim()?"not-allowed":"pointer",fontFamily:"'DM Sans',sans-serif",display:"flex",alignItems:"center",gap:7,whiteSpace:"nowrap"}}>
+              {loading ? <><span style={{width:14,height:14,border:"2px solid rgba(255,255,255,0.3)",borderTopColor:WHITE,borderRadius:"50%",display:"inline-block",animation:"spin 0.7s linear infinite"}}></span>Finding...</> : "🔍 Plan Trip"}
+            </button>
           </div>
         )}
 
@@ -361,6 +373,8 @@ export default function App() {
               </div>
             )}
 
+            <WeatherCard weather={result.weather}/>
+
             {/* Best Pizza Delivery */}
             {result.pizzaPlaces.length > 0 && (
               <div style={{marginBottom:28}}>
@@ -420,8 +434,6 @@ export default function App() {
                 </div>
               </div>
             )}
-
-            <WeatherCard weather={result.weather}/>
 
           </div>
         )}
