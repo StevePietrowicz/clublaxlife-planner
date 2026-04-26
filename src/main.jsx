@@ -182,6 +182,8 @@ export default function App() {
   const [loadingMsg, setLoadingMsg] = useState("");
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
+  const [openSections, setOpenSections] = useState({});
+  function toggleSection(key) { setOpenSections(function(prev){ return {...prev, [key]: !prev[key]}; }); }
   const inputRef = useRef();
 
   async function handleSearch() {
@@ -375,8 +377,37 @@ export default function App() {
 
             <WeatherCard weather={result.weather}/>
 
+            {/* Section tiles */}
+            {(function() {
+              var tiles = [
+                { key:"pizza",       icon:"🍕", title:"Best Pizza",     hasData: result.pizzaPlaces.length > 0 },
+                { key:"restaurants", icon:"🍔", title:"Where to Eat",   hasData: result.restaurants.length > 0 },
+                { key:"todos",       icon:"🎯", title:"Things to Do",   hasData: result.todos.length > 0 },
+                { key:"hotels",      icon:"🏨", title:"Where to Stay",  hasData: result.hotels.length > 0 },
+                { key:"grocery",     icon:"🛒", title:"Grocery Stores", hasData: result.groceryStores.length > 0 },
+                { key:"liquor",      icon:"🍷", title:"Liquor Stores",  hasData: result.liquorStores.length > 0 },
+              ].filter(function(s){ return s.hasData; });
+              return (
+                <div style={{display:"flex",flexWrap:"wrap",gap:10,marginBottom:28}}>
+                  {tiles.map(function(s) {
+                    var isOpen = !!openSections[s.key];
+                    return (
+                      <button key={s.key} onClick={function(){ toggleSection(s.key); }}
+                        style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:6,padding:"14px 12px",borderRadius:12,border:"none",cursor:"pointer",flex:"1 1 90px",minWidth:80,
+                          background: isOpen ? ORANGE : NAVY,
+                          color: isOpen ? WHITE : ORANGE,
+                          fontFamily:"'DM Sans',sans-serif",transition:"background 0.18s,color 0.18s"}}>
+                        <span style={{fontSize:24}}>{s.icon}</span>
+                        <span style={{fontSize:11,fontWeight:700,textAlign:"center",lineHeight:1.2}}>{s.title}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+
             {/* Best Pizza Delivery */}
-            {result.pizzaPlaces.length > 0 && (
+            {openSections.pizza && result.pizzaPlaces.length > 0 && (
               <div style={{marginBottom:28}}>
                 <SectionHeader icon="🍕" title="Best Pizza Delivery" />
                 <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:10}}>
@@ -386,7 +417,7 @@ export default function App() {
             )}
 
             {/* Restaurants */}
-            {result.restaurants.length > 0 && (
+            {openSections.restaurants && result.restaurants.length > 0 && (
               <div style={{marginBottom:28}}>
                 <SectionHeader icon="🍔" title="Where to Eat" />
                 <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:10}}>
@@ -396,7 +427,7 @@ export default function App() {
             )}
 
             {/* Things to Do */}
-            {result.todos.length > 0 && (
+            {openSections.todos && result.todos.length > 0 && (
               <div style={{marginBottom:28}}>
                 <SectionHeader icon="🎯" title="Things to Do" />
                 <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:10}}>
@@ -406,7 +437,7 @@ export default function App() {
             )}
 
             {/* Hotels */}
-            {result.hotels.length > 0 && (
+            {openSections.hotels && result.hotels.length > 0 && (
               <div style={{marginBottom:28}}>
                 <SectionHeader icon="🏨" title="Where to Stay" />
                 <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:10}}>
@@ -416,7 +447,7 @@ export default function App() {
             )}
 
             {/* Grocery Stores */}
-            {result.groceryStores.length > 0 && (
+            {openSections.grocery && result.groceryStores.length > 0 && (
               <div style={{marginBottom:28}}>
                 <SectionHeader icon="🛒" title="Grocery Stores" />
                 <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:10}}>
@@ -426,7 +457,7 @@ export default function App() {
             )}
 
             {/* Liquor Stores */}
-            {result.liquorStores.length > 0 && (
+            {openSections.liquor && result.liquorStores.length > 0 && (
               <div style={{marginBottom:28}}>
                 <SectionHeader icon="🍷" title="Liquor Stores" />
                 <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:10}}>
