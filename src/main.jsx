@@ -182,13 +182,23 @@ export default function App() {
   const [loadingMsg, setLoadingMsg] = useState("");
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
+  const [openSections, setOpenSections] = useState(new Set());
   const inputRef = useRef();
+
+  function toggleSection(key) {
+    setOpenSections(function(prev) {
+      const next = new Set(prev);
+      next.has(key) ? next.delete(key) : next.add(key);
+      return next;
+    });
+  }
 
   async function handleSearch() {
     if (!query.trim() || !locationInput.trim()) return;
     setLoading(true);
     setResult(null);
     setError(null);
+    setOpenSections(new Set());
     try {
       setLoadingMsg("Looking up tournament info...");
       const prompt = "You are a lacrosse tournament travel assistant. Tournament: " + query + " in " + locationInput + "\n\nRespond with ONLY a valid JSON object, nothing else, no markdown:\n{\n  \"tournamentName\": \"string\",\n  \"location\": \"" + locationInput + "\",\n  \"venueAddress\": \"full address\",\n  \"directions\": \"2-3 sentences with highways and landmarks\",\n  \"proTip\": \"insider tip for lax families\",\n  \"hotels\": [\n    { \"name\": \"string\", \"detail\": \"X miles from venue · $$ · chain name\", \"stars\": 3, \"pool\": true, \"tag\": \"why great for families\", \"website\": \"https://...\", \"phone\": \"555-000-0000\" }\n  ],\n  \"restaurants\": [\n    { \"name\": \"string\", \"detail\": \"Cuisine type · price · address\", \"largeGroup\": true, \"tag\": \"why families love it\", \"website\": \"https://...\", \"phone\": \"555-000-0000\" }\n  ],\n  \"todos\": [\n    { \"name\": \"string\", \"detail\": \"cost · brief description\", \"ageRange\": \"All ages\", \"distance\": \"2 miles from venue\", \"indoorOutdoor\": \"Outdoor\", \"bookingRequired\": false, \"tag\": \"why fun\", \"website\": \"https://...\", \"phone\": \"555-000-0000\" }\n  ],\n  \"groceryStores\": [\n    { \"name\": \"string\", \"detail\": \"distance · address\", \"tag\": \"why useful\", \"website\": \"https://...\", \"phone\": \"555-000-0000\" }\n  ],\n  \"liquorStores\": [\n    { \"name\": \"string\", \"detail\": \"distance · address\", \"tag\": \"note\", \"website\": \"https://...\", \"phone\": \"555-000-0000\" }\n  ],\n  \"pizzaPlaces\": [\n    { \"name\": \"string\", \"detail\": \"style · delivery apps · address\", \"tag\": \"why great for the team\" }\n  ]\n}\n\nInclude 4 hotels, 5 restaurants, 4 todos, 2-3 grocery stores, 2 liquor stores, 3 pizza places. All results must be in or near " + locationInput + ". For hotels: EXCLUDE budget chains (Motel 6, Red Roof Inn, Super 8, Days Inn, Econo Lodge). PRIORITIZE Marriott, Hilton, Hyatt, and IHG brand properties. For pizza: EXCLUDE large national chains (Dominos, Little Caesars, Papa Johns). PRIORITIZE local pizzerias and regional chains.";
@@ -375,65 +385,91 @@ export default function App() {
 
             <WeatherCard weather={result.weather}/>
 
-            {/* Best Pizza Delivery */}
-            {result.pizzaPlaces.length > 0 && (
-              <div style={{marginBottom:28}}>
-                <SectionHeader icon="🍕" title="Best Pizza Delivery" />
-                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:10}}>
-                  {result.pizzaPlaces.map(function(item,i){ return <PizzaCard key={i} item={item} city={result.location}/>; })}
-                </div>
-              </div>
-            )}
+            {/* Section tile menu */}
+            {(function() {
+              const tiles = [
+                { key:"pizza",    icon:"🍕", label:"Best Pizza",    data: result.pizzaPlaces },
+                { key:"eat",      icon:"🍔", label:"Where to Eat",  data: result.restaurants },
+                { key:"do",       icon:"🎯", label:"Things to Do",  data: result.todos },
+                { key:"stay",     icon:"🏨", label:"Where to Stay", data: result.hotels },
+                { key:"grocery",  icon:"🛒", label:"Grocery Stores",data: result.groceryStores },
+                { key:"liquor",   icon:"🍷", label:"Liquor Stores", data: result.liquorStores },
+              ].filter(function(s){ return s.data.length > 0; });
 
-            {/* Restaurants */}
-            {result.restaurants.length > 0 && (
-              <div style={{marginBottom:28}}>
-                <SectionHeader icon="🍔" title="Where to Eat" />
-                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:10}}>
-                  {result.restaurants.map(function(item,i){ return <RestaurantCard key={i} item={item}/>; })}
-                </div>
-              </div>
-            )}
+              return (
+                <>
+                  <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:24}}>
+                    {tiles.map(function(s) {
+                      const open = openSections.has(s.key);
+                      return (
+                        <button key={s.key} onClick={function(){ toggleSection(s.key); }}
+                          style={{background:open?ORANGE:NAVY,color:open?WHITE:ORANGE,
+                            border:open?"2px solid "+ORANGE:"2px solid rgba(245,130,31,0.35)",
+                            borderRadius:10,padding:"10px 16px",cursor:"pointer",
+                            fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,
+                            display:"flex",alignItems:"center",gap:7,letterSpacing:0.3}}>
+                          <span style={{fontSize:16}}>{s.icon}</span>{s.label}
+                        </button>
+                      );
+                    })}
+                  </div>
 
-            {/* Things to Do */}
-            {result.todos.length > 0 && (
-              <div style={{marginBottom:28}}>
-                <SectionHeader icon="🎯" title="Things to Do" />
-                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:10}}>
-                  {result.todos.map(function(item,i){ return <TodoCard key={i} item={item}/>; })}
-                </div>
-              </div>
-            )}
+                  {openSections.has("pizza") && result.pizzaPlaces.length > 0 && (
+                    <div style={{marginBottom:28}}>
+                      <SectionHeader icon="🍕" title="Best Pizza Delivery" />
+                      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:10}}>
+                        {result.pizzaPlaces.map(function(item,i){ return <PizzaCard key={i} item={item} city={result.location}/>; })}
+                      </div>
+                    </div>
+                  )}
 
-            {/* Hotels */}
-            {result.hotels.length > 0 && (
-              <div style={{marginBottom:28}}>
-                <SectionHeader icon="🏨" title="Where to Stay" />
-                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:10}}>
-                  {result.hotels.map(function(item,i){ return <HotelCard key={i} item={item}/>; })}
-                </div>
-              </div>
-            )}
+                  {openSections.has("eat") && result.restaurants.length > 0 && (
+                    <div style={{marginBottom:28}}>
+                      <SectionHeader icon="🍔" title="Where to Eat" />
+                      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:10}}>
+                        {result.restaurants.map(function(item,i){ return <RestaurantCard key={i} item={item}/>; })}
+                      </div>
+                    </div>
+                  )}
 
-            {/* Grocery Stores */}
-            {result.groceryStores.length > 0 && (
-              <div style={{marginBottom:28}}>
-                <SectionHeader icon="🛒" title="Grocery Stores" />
-                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:10}}>
-                  {result.groceryStores.map(function(item,i){ return <StoreCard key={i} item={item}/>; })}
-                </div>
-              </div>
-            )}
+                  {openSections.has("do") && result.todos.length > 0 && (
+                    <div style={{marginBottom:28}}>
+                      <SectionHeader icon="🎯" title="Things to Do" />
+                      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:10}}>
+                        {result.todos.map(function(item,i){ return <TodoCard key={i} item={item}/>; })}
+                      </div>
+                    </div>
+                  )}
 
-            {/* Liquor Stores */}
-            {result.liquorStores.length > 0 && (
-              <div style={{marginBottom:28}}>
-                <SectionHeader icon="🍷" title="Liquor Stores" />
-                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:10}}>
-                  {result.liquorStores.map(function(item,i){ return <StoreCard key={i} item={item}/>; })}
-                </div>
-              </div>
-            )}
+                  {openSections.has("stay") && result.hotels.length > 0 && (
+                    <div style={{marginBottom:28}}>
+                      <SectionHeader icon="🏨" title="Where to Stay" />
+                      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:10}}>
+                        {result.hotels.map(function(item,i){ return <HotelCard key={i} item={item}/>; })}
+                      </div>
+                    </div>
+                  )}
+
+                  {openSections.has("grocery") && result.groceryStores.length > 0 && (
+                    <div style={{marginBottom:28}}>
+                      <SectionHeader icon="🛒" title="Grocery Stores" />
+                      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:10}}>
+                        {result.groceryStores.map(function(item,i){ return <StoreCard key={i} item={item}/>; })}
+                      </div>
+                    </div>
+                  )}
+
+                  {openSections.has("liquor") && result.liquorStores.length > 0 && (
+                    <div style={{marginBottom:28}}>
+                      <SectionHeader icon="🍷" title="Liquor Stores" />
+                      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:10}}>
+                        {result.liquorStores.map(function(item,i){ return <StoreCard key={i} item={item}/>; })}
+                      </div>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
 
           </div>
         )}
