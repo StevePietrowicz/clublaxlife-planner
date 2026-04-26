@@ -23,9 +23,15 @@ function interpretWeatherCode(code) {
 }
 
 async function fetchRealWeather(location) {
-  const geoRes = await fetch("https://geocoding-api.open-meteo.com/v1/search?name=" + encodeURIComponent(location) + "&count=1&language=en&format=json");
-  const geoData = await geoRes.json();
-  if (!geoData.results || !geoData.results.length) throw new Error("Location not found");
+  const cityOnly = location.split(',')[0].trim();
+  const queries = cityOnly !== location ? [location, cityOnly] : [location];
+  let geoData;
+  for (const q of queries) {
+    const r = await fetch("https://geocoding-api.open-meteo.com/v1/search?name=" + encodeURIComponent(q) + "&count=1&language=en&format=json");
+    geoData = await r.json();
+    if (geoData.results && geoData.results.length) break;
+  }
+  if (!geoData || !geoData.results || !geoData.results.length) throw new Error("Location not found");
   const { latitude, longitude, name, admin1 } = geoData.results[0];
   const wxRes = await fetch("https://api.open-meteo.com/v1/forecast?latitude=" + latitude + "&longitude=" + longitude + "&daily=temperature_2m_max,temperature_2m_min,weather_code,precipitation_probability_max&temperature_unit=fahrenheit&timezone=auto&forecast_days=5");
   const wxData = await wxRes.json();
