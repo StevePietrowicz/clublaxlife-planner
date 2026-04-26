@@ -27,13 +27,13 @@ async function fetchRealWeather(location) {
   const geoData = await geoRes.json();
   if (!geoData.results || !geoData.results.length) throw new Error("Location not found");
   const { latitude, longitude, name, admin1 } = geoData.results[0];
-  const wxRes = await fetch("https://api.open-meteo.com/v1/forecast?latitude=" + latitude + "&longitude=" + longitude + "&daily=temperature_2m_max,temperature_2m_min,weathercode,precipitation_probability_max&temperature_unit=fahrenheit&timezone=auto&forecast_days=5");
+  const wxRes = await fetch("https://api.open-meteo.com/v1/forecast?latitude=" + latitude + "&longitude=" + longitude + "&daily=temperature_2m_max,temperature_2m_min,weather_code,precipitation_probability_max&temperature_unit=fahrenheit&timezone=auto&forecast_days=5");
   const wxData = await wxRes.json();
   const daily = wxData.daily;
   const days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
   const weatherDays = daily.time.slice(0, 5).map(function(dateStr, i) {
     const d = new Date(dateStr + "T12:00:00");
-    const { label, emoji } = interpretWeatherCode(daily.weathercode[i]);
+    const { label, emoji } = interpretWeatherCode(daily.weather_code[i]);
     const precip = daily.precipitation_probability_max[i];
     const high = Math.round(daily.temperature_2m_max[i]);
     const tip = precip > 60 ? "Rain gear & gear tarp!" : precip > 30 ? "Pack a rain layer" : high > 85 ? "Hot! Sunscreen & water" : high < 45 ? "Cold! Layer up" : "Great lax weather!";
