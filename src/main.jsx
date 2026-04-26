@@ -24,15 +24,29 @@ function interpretWeatherCode(code) {
 
 async function fetchRealWeather(location) {
   const cityOnly = location.split(',')[0].trim();
-  const queries = cityOnly !== location ? [location, cityOnly] : [location];
-  let geoData;
-  for (const q of queries) {
+  const omQueries = cityOnly !== location ? [location, cityOnly] : [location];
+  let latitude, longitude, resolvedLocation;
+
+  // Try Open-Meteo geocoding first (fast, but misses small towns)
+  for (const q of omQueries) {
     const r = await fetch("https://geocoding-api.open-meteo.com/v1/search?name=" + encodeURIComponent(q) + "&count=1&language=en&format=json");
-    geoData = await r.json();
-    if (geoData.results && geoData.results.length) break;
+    const d = await r.json();
+    if (d.results && d.results.length) {
+      latitude = d.results[0].latitude; longitude = d.results[0].longitude;
+      resolvedLocation = d.results[0].name + (d.results[0].admin1 ? ", " + d.results[0].admin1 : "");
+      break;
+    }
   }
-  if (!geoData || !geoData.results || !geoData.results.length) throw new Error("Location not found");
-  const { latitude, longitude, name, admin1 } = geoData.results[0];
+
+  // Fall back to Nominatim (OpenStreetMap) — covers every US town/suburb
+  if (!latitude) {
+    const r = await fetch("https://nominatim.openstreetmap.org/search?q=" + encodeURIComponent(location) + "&format=json&limit=1&addressdetails=1");
+    const d = await r.json();
+    if (!d || !d.length) throw new Error("Location not found");
+    latitude = parseFloat(d[0].lat); longitude = parseFloat(d[0].lon);
+    const addr = d[0].address || {};
+    resolvedLocation = (addr.city || addr.town || addr.village || cityOnly) + (addr.state ? ", " + addr.state : "");
+  }
   const wxRes = await fetch("https://api.open-meteo.com/v1/forecast?latitude=" + latitude + "&longitude=" + longitude + "&daily=temperature_2m_max,temperature_2m_min,weather_code,precipitation_probability_max&temperature_unit=fahrenheit&timezone=auto&forecast_days=5");
   const wxData = await wxRes.json();
   const daily = wxData.daily;
@@ -45,7 +59,7 @@ async function fetchRealWeather(location) {
     const tip = precip > 60 ? "Rain gear & gear tarp!" : precip > 30 ? "Pack a rain layer" : high > 85 ? "Hot! Sunscreen & water" : high < 45 ? "Cold! Layer up" : "Great lax weather!";
     return { day: days[d.getDay()], date: d.toLocaleDateString("en-US", { month:"short", day:"numeric" }), high, low: Math.round(daily.temperature_2m_min[i]), condition: label, emoji, precip, tip };
   });
-  return { days: weatherDays, resolvedLocation: name + (admin1 ? ", " + admin1 : "") };
+  return { days: weatherDays, resolvedLocation };
 }
 
 function SectionHeader({ icon, title }) {
